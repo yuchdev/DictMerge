@@ -7,7 +7,7 @@ This tool allows you to merge dictionaries of different formats into a single di
 
 It can perform lookup of the dictionaries in the specific directory,
 lookup for dictionaries in the temporary and configuration directories like `AppData`, `.config`, etc.,
-knows special dictionary names and locations, like IDEA's `spellchecker-dictionary.xml`. 
+and knows special dictionary names and locations, like IDEA's `spellchecker-dictionary.xml`. 
 
 ## Usecases
 
