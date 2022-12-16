@@ -2,6 +2,7 @@ import os
 from log_helper import logger
 import xml.etree.ElementTree as XmlTree
 import xml.dom.minidom as minidom
+import json
 
 
 class BaseDictionaryProvider:
@@ -81,6 +82,7 @@ class IdeaDictionaryProvider(BaseDictionaryProvider):
 
     def write(self, new_dictionary):
         """
+        Write in IDEA XML format
         :param new_dictionary: New dictionary to write, normally merged from different sources
         """
         if self.read_only:
@@ -137,6 +139,7 @@ class PlaintextDictionaryProvider(BaseDictionaryProvider):
 
     def write(self, new_dictionary):
         """
+        Write in plain text format
         :param new_dictionary: New dictionary to write, normally merged from different sources
         """
         if self.read_only:
@@ -145,3 +148,48 @@ class PlaintextDictionaryProvider(BaseDictionaryProvider):
 
         with open(self.path(), "w", encoding="utf-8") as plaintext_dict:
             plaintext_dict.write("\n".join(new_dictionary))
+
+
+class VscodeDictionaryProvider(BaseDictionaryProvider):
+    """
+    Provider class for VSCode dictionary.
+    VSCode dictionary format is JSON with pre-defined structure:
+    {
+        "version": "1.0",
+        "words": [
+            "Cortana",
+            "Filesize"
+        ]
+    }
+    """
+
+    def __init__(self, file_path, read_only=False):
+        """
+        Open VSCode JSON dictionary file
+        :param file_path: Relative or absolute path to file
+        :raise: RuntimeError if file does not exist
+        """
+        super(VscodeDictionaryProvider, self).__init__(file_path, read_only)
+        self.vscode_dictionary = []
+        with open(self.path(), encoding="utf-8") as f:
+            self.json_dictionary = json.load(f)
+        self.dictionary_version = self.json_dictionary["version"]
+
+    def read(self):
+        """
+        :return: list of dictionary items
+        """
+        return self.json_dictionary["words"]
+
+    def write(self, new_dictionary):
+        """
+        Write in VSCode JSON format
+        :param new_dictionary: New dictionary to write, normally merged from different sources
+        """
+        if self.read_only:
+            logger.warning("Read-only dictionary, skip writing")
+            return
+
+        with open(self.path(), "w", encoding="utf-8") as vscode_dict:
+            vscode_dict.write(json.dumps({"version": self.dictionary_version, "words": new_dictionary},
+                                         indent=4))

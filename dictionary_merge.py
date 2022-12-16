@@ -33,7 +33,7 @@ def main():
                         required=False,
                         default=[])
     parser.add_argument('--plaintext-dictionary',
-                        help='Add plain text Visual Assist dictionary as a merge source',
+                        help='Add plain text dictionary (VisualStudio, new IDEA, and many others) as a merge source',
                         action='append',
                         dest='text_dictionary',
                         required=False,
@@ -43,13 +43,15 @@ def main():
                         required=False,
                         default=projects_dir())
     parser.add_argument('--idea-dictionary-name',
-                        help='Name of IDEA dictionary to merge',
+                        help='Name of IDEA dictionary to lookup',
                         required=False,
-                        default=None)
+                        default=user_name())
 
     args = parser.parse_args()
+    assert isinstance(args.idea_dictionary, list)
+    assert isinstance(args.text_dictionary, list)
+    assert isinstance(args.lookup_directory, str)
     all_dictionaries = []
-    idea_dict_name = args.idea_dictionary_name if args.idea_dictionary_name else user_name()
 
     for idea_xml_file in args.idea_dictionary:
         idea_dict_path = os.path.abspath(idea_xml_file)
@@ -83,7 +85,7 @@ def main():
         dict_lookup = DictionaryLookup(projects_dir=lookup_dir)
         for plaintext_dict in dict_lookup.lookup_plaintext():
             all_dictionaries.append(PlaintextDictionaryProvider(plaintext_dict))
-        for idea_dict in dict_lookup.lookup_idea(dict_name=idea_dict_name):
+        for idea_dict in dict_lookup.lookup_idea(dict_name=args.idea_dictionary_name):
             all_dictionaries.append(IdeaDictionaryProvider(idea_dict))
     else:
         logger.info("Lookup directory not specified, lookup AppData only")
